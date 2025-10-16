@@ -34,16 +34,25 @@ export default function CreateOffer() {
     }
     setLoading(true);
     try {
+      const payload: any = {
+        title,
+        description,
+        budgetTON: Number(budget),
+        stack,
+        makerAddress: address,
+      };
+
+      if (deadline) {
+        const d = new Date(deadline);
+        if (!isNaN(d.getTime())) {
+          payload.deadline = d.toISOString();
+        }
+      }
+
       const r = await fetch(apiUrl("/api/offers"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description,
-          budgetTON: Number(budget),
-          stack,
-          makerAddress: address,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!r.ok) throw new Error("Failed to create offer");
       navigate("/take");
