@@ -46,9 +46,13 @@ export default function Chat() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
-  const [receivedApplications, setReceivedApplications] = useState<Application[]>([]);
+  const [receivedApplications, setReceivedApplications] = useState<
+    Application[]
+  >([]);
   const [loading, setLoading] = useState(false);
-  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     if (!addr) return;
@@ -348,7 +352,8 @@ export default function Chat() {
               </>
             )}
 
-            {receivedApplications.filter((a) => a.status === "pending").length > 0 && (
+            {receivedApplications.filter((a) => a.status === "pending").length >
+              0 && (
               <>
                 <h2 className="mt-6 text-sm font-semibold text-white/60">
                   Freelton Notifications

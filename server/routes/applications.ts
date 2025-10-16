@@ -4,15 +4,17 @@ import { prisma } from "../lib/prisma";
 export const applyToOffer: RequestHandler = async (req, res) => {
   try {
     const { offerId, freelancerAddress } = req.body;
-    
+
     if (!offerId || !freelancerAddress) {
-      return res.status(400).json({ error: "offerId and freelancerAddress required" });
+      return res
+        .status(400)
+        .json({ error: "offerId and freelancerAddress required" });
     }
 
     const offer = await prisma.offer.findUnique({
       where: { id: String(offerId) },
     });
-    
+
     if (!offer) {
       return res.status(404).json({ error: "offer_not_found" });
     }
@@ -27,7 +29,9 @@ export const applyToOffer: RequestHandler = async (req, res) => {
     });
 
     if (existing) {
-      return res.status(409).json({ error: "already_applied", application: existing });
+      return res
+        .status(409)
+        .json({ error: "already_applied", application: existing });
     }
 
     const application = await prisma.application.create({
@@ -48,7 +52,7 @@ export const applyToOffer: RequestHandler = async (req, res) => {
 export const getApplicationsByOffer: RequestHandler = async (req, res) => {
   try {
     const { offerId } = req.params;
-    
+
     if (!offerId) {
       return res.status(400).json({ error: "offerId required" });
     }
@@ -68,16 +72,18 @@ export const getApplicationsByOffer: RequestHandler = async (req, res) => {
 export const selectExecutor: RequestHandler = async (req, res) => {
   try {
     const { offerId, freelancerAddress } = req.body;
-    
+
     if (!offerId || !freelancerAddress) {
-      return res.status(400).json({ error: "offerId and freelancerAddress required" });
+      return res
+        .status(400)
+        .json({ error: "offerId and freelancerAddress required" });
     }
 
     const offer = await prisma.offer.findUnique({
       where: { id: String(offerId) },
       include: { creator: { select: { address: true } } },
     });
-    
+
     if (!offer) {
       return res.status(404).json({ error: "offer_not_found" });
     }

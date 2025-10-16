@@ -48,12 +48,13 @@ export default function Profile() {
   const [ordersAsExecutor, setOrdersAsExecutor] = useState<Order[]>([]);
   const [ordersAsClient, setOrdersAsClient] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedOfferForCandidates, setSelectedOfferForCandidates] = useState<
-    Offer | null
-  >(null);
+  const [selectedOfferForCandidates, setSelectedOfferForCandidates] =
+    useState<Offer | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
-  const [selectingExecutor, setSelectingExecutor] = useState<string | null>(null);
+  const [selectingExecutor, setSelectingExecutor] = useState<string | null>(
+    null,
+  );
   const { toast } = useToast();
 
   useEffect(() => {
@@ -101,9 +102,7 @@ export default function Profile() {
       );
       if (r.ok) {
         const data = await r.json();
-        setCandidates(
-          data.applications || []
-        );
+        setCandidates(data.applications || []);
       }
     } catch (e) {
       console.error("Error loading candidates:", e);
@@ -153,9 +152,7 @@ export default function Profile() {
       );
       const refreshData = await refreshR.json();
       const orders = refreshData.items || [];
-      const asClient = orders.filter(
-        (o: Order) => o.makerAddress === address,
-      );
+      const asClient = orders.filter((o: Order) => o.makerAddress === address);
       setOrdersAsClient(asClient);
     } catch (e) {
       console.error("Error selecting executor:", e);
@@ -322,13 +319,16 @@ export default function Profile() {
                           {candidate.freelancerAddress}
                         </div>
                         <div className="mt-1 text-xs text-white/60">
-                          Applied {new Date(candidate.createdAt).toLocaleDateString()}
+                          Applied{" "}
+                          {new Date(candidate.createdAt).toLocaleDateString()}
                         </div>
                       </div>
                       <Button
                         size="sm"
                         className="ml-2 whitespace-nowrap bg-primary text-primary-foreground"
-                        disabled={selectingExecutor === candidate.freelancerAddress}
+                        disabled={
+                          selectingExecutor === candidate.freelancerAddress
+                        }
                         onClick={() =>
                           handleSelectExecutor(candidate.freelancerAddress)
                         }

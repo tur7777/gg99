@@ -54,7 +54,9 @@ export default function OfferPage() {
     async function checkApplied() {
       try {
         const r = await fetch(
-          apiUrl(`/api/applications/freelancer?freelancerAddress=${encodeURIComponent(me)}`),
+          apiUrl(
+            `/api/applications/freelancer?freelancerAddress=${encodeURIComponent(me)}`,
+          ),
         );
         if (!mounted) return;
         if (r.ok) {
@@ -179,7 +181,8 @@ export default function OfferPage() {
                             setHasApplied(true);
                             toast({
                               title: "Already applied",
-                              description: "You've already applied to this offer",
+                              description:
+                                "You've already applied to this offer",
                             });
                             return;
                           }
@@ -189,7 +192,8 @@ export default function OfferPage() {
                         setHasApplied(true);
                         toast({
                           title: "Success",
-                          description: "Application submitted! The client will review your profile.",
+                          description:
+                            "Application submitted! The client will review your profile.",
                         });
                       } catch (e) {
                         toast({
@@ -222,7 +226,8 @@ export default function OfferPage() {
                           body: JSON.stringify({ address: me }),
                         });
                         const jSelf = await rSelf.json();
-                        if (!rSelf.ok) throw new Error(jSelf?.error || "failed");
+                        if (!rSelf.ok)
+                          throw new Error(jSelf?.error || "failed");
                         const idSelfRaw =
                           jSelf?.conversation?.id ??
                           jSelf?.conversationId ??
