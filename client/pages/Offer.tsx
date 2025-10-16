@@ -3,6 +3,7 @@ import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { apiUrl } from "@/lib/api";
 import { useWalletAddress } from "@/hooks/useTon";
+import { useToast } from "@/hooks/use-toast";
 
 export default function OfferPage() {
   const { id } = useParams<{ id: string }>();
@@ -100,7 +101,7 @@ export default function OfferPage() {
                   className="h-10 w-full rounded-md bg-white/5 text-white border border-white/10 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                 />
                 <div className="mt-1 text-xs text-white/50">
-                  До какой даты и времени нужно выполнить заказ.
+                  До какой даты и времени нужно выполнить з��каз.
                 </div>
               </div>
               <Button
