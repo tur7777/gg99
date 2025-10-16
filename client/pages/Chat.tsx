@@ -322,7 +322,7 @@ export default function Chat() {
             {applications.filter((a) => a.status === "pending").length > 0 && (
               <>
                 <h2 className="mt-6 text-sm font-semibold text-white/60">
-                  Freelton Notifications
+                  My Applications
                 </h2>
                 <div className="mt-2 space-y-2">
                   {applications
@@ -339,7 +339,39 @@ export default function Chat() {
                           {app.offer?.budgetTON || 0} TON
                         </div>
                         <div className="text-xs text-white/50 mt-0.5">
-                          Application received •{" "}
+                          Applied •{" "}
+                          {new Date(app.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
+
+            {receivedApplications.filter((a) => a.status === "pending").length > 0 && (
+              <>
+                <h2 className="mt-6 text-sm font-semibold text-white/60">
+                  Freelton Notifications
+                </h2>
+                <div className="mt-2 space-y-2">
+                  {receivedApplications
+                    .filter((a) => a.status === "pending")
+                    .map((app) => (
+                      <div
+                        key={app.id}
+                        className="rounded-lg border border-white/10 bg-accent/20 p-3 hover:bg-accent/30 cursor-pointer"
+                      >
+                        <div className="font-medium text-accent-foreground">
+                          {app.offer?.title || "New application"}
+                        </div>
+                        <div className="text-xs text-white/60 mt-1">
+                          {app.offer?.budgetTON || 0} TON •{" "}
+                          <span className="text-accent">
+                            {app.freelancerAddress.substring(0, 6)}...
+                          </span>
+                        </div>
+                        <div className="text-xs text-white/50 mt-0.5">
+                          New candidate •{" "}
                           {new Date(app.createdAt).toLocaleDateString()}
                         </div>
                       </div>
