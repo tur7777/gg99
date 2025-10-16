@@ -67,6 +67,7 @@ export function createServer() {
   app.post("/api/applications", applyToOffer);
   app.get("/api/applications/offer/:offerId", getApplicationsByOffer);
   app.get("/api/applications/freelancer", getApplicationsByFreelancer);
+  app.get("/api/applications/creator", getApplicationsByCreator);
   app.post("/api/applications/select", selectExecutor);
 
   // Orders API
