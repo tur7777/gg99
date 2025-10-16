@@ -80,8 +80,17 @@ export default function OfferPage() {
         budgetTON: Number(offer.budgetTON || 0),
         status: String(offer.status || "open"),
         createdAt: String(offer.createdAt || new Date().toISOString()),
+        deadlineISO: offer.deadlineISO ? String(offer.deadlineISO) : null,
       }
     : null;
+
+  useEffect(() => {
+    if (minimal?.deadlineISO) {
+      const d = new Date(minimal.deadlineISO);
+      const iso = d.toISOString().slice(0, 16);
+      setDeadline(iso);
+    }
+  }, [minimal?.deadlineISO]);
 
   return (
     <div className="min-h-[calc(100dvh-160px)] bg-[hsl(217,33%,9%)] text-white">
