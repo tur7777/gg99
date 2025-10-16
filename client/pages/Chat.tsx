@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useWalletAddress } from "@/hooks/useTon";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { apiUrl } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface Order {
   id: string;
