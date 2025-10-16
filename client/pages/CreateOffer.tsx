@@ -12,6 +12,7 @@ export default function CreateOffer() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [stack, setStack] = useState("");
+  const [deadline, setDeadline] = useState("");
   const navigate = useNavigate();
   const connected = useIsWalletConnected();
   const address = useWalletAddress();
