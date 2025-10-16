@@ -131,7 +131,7 @@ export const selectExecutor: RequestHandler = async (req, res) => {
 export const getApplicationsByFreelancer: RequestHandler = async (req, res) => {
   try {
     const { freelancerAddress } = req.query;
-    
+
     if (!freelancerAddress) {
       return res.status(400).json({ error: "freelancerAddress required" });
     }
@@ -145,6 +145,38 @@ export const getApplicationsByFreelancer: RequestHandler = async (req, res) => {
     res.json({ applications });
   } catch (e) {
     console.error("getApplicationsByFreelancer error:", e);
+    res.status(500).json({ error: "internal_error" });
+  }
+};
+
+export const getApplicationsByCreator: RequestHandler = async (req, res) => {
+  try {
+    const { creatorAddress } = req.query;
+
+    if (!creatorAddress) {
+      return res.status(400).json({ error: "creatorAddress required" });
+    }
+
+    const offers = await prisma.offer.findMany({
+      where: { creator: { address: String(creatorAddress) } },
+      select: { id: true },
+    });
+
+    const offerIds = offers.map((o) => o.id);
+
+    if (offerIds.length === 0) {
+      return res.json({ applications: [] });
+    }
+
+    const applications = await prisma.application.findMany({
+      where: { offerId: { in: offerIds } },
+      include: { offer: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json({ applications });
+  } catch (e) {
+    console.error("getApplicationsByCreator error:", e);
     res.status(500).json({ error: "internal_error" });
   }
 };
