@@ -72,22 +72,31 @@ export default function Chat() {
         const urlApplications = apiUrl(
           `/api/applications/freelancer?freelancerAddress=${encodeURIComponent(addr)}`,
         );
+        const urlReceivedApplications = apiUrl(
+          `/api/applications/creator?creatorAddress=${encodeURIComponent(addr)}`,
+        );
 
-        const [ordersRes, conversationsRes, applicationsRes] = await Promise.all([
-          fetch(urlOrders),
-          fetch(urlConversations),
-          fetch(urlApplications),
-        ]);
+        const [ordersRes, conversationsRes, applicationsRes, receivedRes] =
+          await Promise.all([
+            fetch(urlOrders),
+            fetch(urlConversations),
+            fetch(urlApplications),
+            fetch(urlReceivedApplications),
+          ]);
 
-        const [ordersJson, conversationsJson, applicationsJson] = await Promise.all([
-          ordersRes.ok ? ordersRes.json() : Promise.resolve({ items: [] }),
-          conversationsRes.ok
-            ? conversationsRes.json()
-            : Promise.resolve({ conversations: [] }),
-          applicationsRes.ok
-            ? applicationsRes.json()
-            : Promise.resolve({ applications: [] }),
-        ]);
+        const [ordersJson, conversationsJson, applicationsJson, receivedJson] =
+          await Promise.all([
+            ordersRes.ok ? ordersRes.json() : Promise.resolve({ items: [] }),
+            conversationsRes.ok
+              ? conversationsRes.json()
+              : Promise.resolve({ conversations: [] }),
+            applicationsRes.ok
+              ? applicationsRes.json()
+              : Promise.resolve({ applications: [] }),
+            receivedRes.ok
+              ? receivedRes.json()
+              : Promise.resolve({ applications: [] }),
+          ]);
 
         if (cancelled) return;
 
