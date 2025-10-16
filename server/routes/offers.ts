@@ -102,6 +102,7 @@ export const createOffer: RequestHandler = async (req, res) => {
     budgetTON,
     stack = "",
     makerAddress = "",
+    deadline = null,
   } = req.body ?? {};
   if (!title || typeof budgetTON !== "number" || budgetTON < 0) {
     return res.status(400).json({ error: "invalid_payload" });
@@ -121,14 +122,31 @@ export const createOffer: RequestHandler = async (req, res) => {
       });
       creatorId = user.id;
     }
+
+    let deadlineISO: Date | undefined = undefined;
+    if (deadline) {
+      const d = new Date(String(deadline));
+      if (!isNaN(d.getTime())) {
+        deadlineISO = d;
+      }
+    }
+
     const created = await prisma.offer.create({
-      data: { title, description: desc, budgetTON, status: "open", creatorId },
+      data: {
+        title,
+        description: desc,
+        budgetTON,
+        status: "open",
+        creatorId,
+        deadlineISO,
+      },
       select: {
         id: true,
         title: true,
         description: true,
         budgetTON: true,
         status: true,
+        deadlineISO: true,
         createdAt: true,
       },
     });
