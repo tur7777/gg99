@@ -11,6 +11,7 @@ interface ConversationDetail {
   orderId?: string | null;
   title?: string | null;
   deadlineISO?: string | null;
+  orderTitle?: string | null;
 }
 
 interface Message {
