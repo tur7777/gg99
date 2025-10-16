@@ -15,6 +15,12 @@ import {
   getOrderById,
   updateOrder,
 } from "./routes/orders";
+import {
+  applyToOffer,
+  getApplicationsByOffer,
+  selectExecutor,
+  getApplicationsByFreelancer,
+} from "./routes/applications";
 import { listMessages, createMessage } from "./routes/messages";
 import { listInboxByThread, postInboxItem } from "./routes/inbox";
 import { getConversation, listConversations } from "./routes/conversations";
