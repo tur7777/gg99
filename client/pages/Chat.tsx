@@ -68,17 +68,24 @@ export default function Chat() {
         const urlConversations = apiUrl(
           `/api/conversations?address=${encodeURIComponent(addr)}`,
         );
+        const urlApplications = apiUrl(
+          `/api/applications/freelancer?freelancerAddress=${encodeURIComponent(addr)}`,
+        );
 
-        const [ordersRes, conversationsRes] = await Promise.all([
+        const [ordersRes, conversationsRes, applicationsRes] = await Promise.all([
           fetch(urlOrders),
           fetch(urlConversations),
+          fetch(urlApplications),
         ]);
 
-        const [ordersJson, conversationsJson] = await Promise.all([
+        const [ordersJson, conversationsJson, applicationsJson] = await Promise.all([
           ordersRes.ok ? ordersRes.json() : Promise.resolve({ items: [] }),
           conversationsRes.ok
             ? conversationsRes.json()
             : Promise.resolve({ conversations: [] }),
+          applicationsRes.ok
+            ? applicationsRes.json()
+            : Promise.resolve({ applications: [] }),
         ]);
 
         if (cancelled) return;
@@ -119,8 +126,26 @@ export default function Chat() {
           nextConversations.unshift(it);
         }
 
+        const mappedApplications = (
+          (applicationsJson.applications ?? []) as any[]
+        ).map((a) => ({
+          id: String(a.id),
+          offerId: String(a.offerId),
+          freelancerAddress: String(a.freelancerAddress),
+          status: String(a.status),
+          createdAt: String(a.createdAt),
+          offer: a.offer
+            ? {
+                id: String(a.offer.id),
+                title: String(a.offer.title),
+                budgetTON: Number(a.offer.budgetTON),
+              }
+            : undefined,
+        }));
+
         setOrders(nextOrders);
         setConversations(nextConversations);
+        setApplications(mappedApplications);
       } finally {
         if (!cancelled) setLoading(false);
       }
