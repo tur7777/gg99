@@ -46,6 +46,7 @@ export default function Chat() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [receivedApplications, setReceivedApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
 
