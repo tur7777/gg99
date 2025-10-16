@@ -48,6 +48,32 @@ export default function OfferPage() {
     };
   }, [id, seed]);
 
+  useEffect(() => {
+    if (!me || !id) return;
+    let mounted = true;
+    async function checkApplied() {
+      try {
+        const r = await fetch(
+          apiUrl(`/api/applications/freelancer?freelancerAddress=${encodeURIComponent(me)}`),
+        );
+        if (!mounted) return;
+        if (r.ok) {
+          const data = await r.json();
+          const applied = (data.applications || []).some(
+            (app: any) => app.offerId === id,
+          );
+          setHasApplied(applied);
+        }
+      } catch (e) {
+        console.error("Error checking if applied:", e);
+      }
+    }
+    checkApplied();
+    return () => {
+      mounted = false;
+    };
+  }, [me, id]);
+
   const minimal = offer
     ? {
         title: String(offer.title || "Offer"),
