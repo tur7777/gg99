@@ -113,6 +113,7 @@ model Offer {
   description String?      @default("")
   budgetTON   Float
   status      OfferStatus  @default(open)
+  deadlineISO DateTime?
   createdAt   DateTime     @default(now())
   creatorId   String?
   creator     User?        @relation(fields: [creatorId], references: [id])
