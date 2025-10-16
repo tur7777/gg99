@@ -133,83 +133,142 @@ export default function OfferPage() {
                   До какой даты и времени нужно выполнить заказ.
                 </div>
               </div>
-              <Button
-                className="bg-primary text-primary-foreground"
-                onClick={async () => {
-                  try {
-                    const maker = String(offer?.makerAddress || "");
-                    if (!me) {
-                      alert("Connect wallet to message maker");
-                      return;
-                    }
-                    // If trying to message yourself -> open Favorites (self chat)
-                    if (maker && me === maker) {
-                      const rSelf = await fetch(apiUrl("/api/chat/self"), {
+              <div className="flex gap-2">
+                {me && me !== offer?.makerAddress && (
+                  <Button
+                    className="flex-1 bg-accent text-accent-foreground hover:bg-accent/80"
+                    disabled={applying || hasApplied}
+                    onClick={async () => {
+                      try {
+                        if (!me) {
+                          toast({
+                            title: "Error",
+                            description: "Connect wallet to apply",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+
+                        setApplying(true);
+                        const r = await fetch(apiUrl("/api/applications"), {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            offerId: String(id),
+                            freelancerAddress: me,
+                          }),
+                        });
+                        const j = await r.json();
+
+                        if (!r.ok) {
+                          if (j.error === "already_applied") {
+                            setHasApplied(true);
+                            toast({
+                              title: "Already applied",
+                              description: "You've already applied to this offer",
+                            });
+                            return;
+                          }
+                          throw new Error(j?.error || "failed");
+                        }
+
+                        setHasApplied(true);
+                        toast({
+                          title: "Success",
+                          description: "Application submitted! The client will review your profile.",
+                        });
+                      } catch (e) {
+                        toast({
+                          title: "Error",
+                          description: "Unable to submit application",
+                          variant: "destructive",
+                        });
+                      } finally {
+                        setApplying(false);
+                      }
+                    }}
+                  >
+                    {hasApplied ? "✓ Applied" : "I'm ready"}
+                  </Button>
+                )}
+                <Button
+                  className="flex-1 bg-primary text-primary-foreground"
+                  onClick={async () => {
+                    try {
+                      const maker = String(offer?.makerAddress || "");
+                      if (!me) {
+                        alert("Connect wallet to message maker");
+                        return;
+                      }
+                      // If trying to message yourself -> open Favorites (self chat)
+                      if (maker && me === maker) {
+                        const rSelf = await fetch(apiUrl("/api/chat/self"), {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ address: me }),
+                        });
+                        const jSelf = await rSelf.json();
+                        if (!rSelf.ok) throw new Error(jSelf?.error || "failed");
+                        const idSelfRaw =
+                          jSelf?.conversation?.id ??
+                          jSelf?.conversationId ??
+                          null;
+                        const idSelf = idSelfRaw ? String(idSelfRaw) : null;
+                        if (!idSelf) throw new Error("no_self_chat");
+                        navigate(`/chat/${idSelf}`);
+                        return;
+                      }
+
+                      const r = await fetch(apiUrl("/api/orders"), {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ address: me }),
+                        body: JSON.stringify({
+                          title: String(offer?.title || "Order"),
+                          makerAddress: maker,
+                          priceTON: Number(offer?.budgetTON || 0),
+                          offerId: String(offer?.id || id || ""),
+                          takerAddress: me,
+                          deadline: deadline
+                            ? new Date(deadline).toISOString()
+                            : undefined,
+                        }),
                       });
-                      const jSelf = await rSelf.json();
-                      if (!rSelf.ok) throw new Error(jSelf?.error || "failed");
-                      const idSelfRaw =
-                        jSelf?.conversation?.id ??
-                        jSelf?.conversationId ??
+                      const j = await r.json();
+                      if (!r.ok) throw new Error(j?.error || "failed");
+
+                      const conversationId =
+                        (typeof j.conversationId === "string" &&
+                          j.conversationId) ||
+                        (typeof j.conversation?.id === "string" &&
+                          j.conversation.id) ||
+                        (typeof j.order?.conversationId === "string" &&
+                          j.order.conversationId) ||
+                        (typeof j.order?.conversation?.id === "string" &&
+                          j.order.conversation.id) ||
                         null;
-                      const idSelf = idSelfRaw ? String(idSelfRaw) : null;
-                      if (!idSelf) throw new Error("no_self_chat");
-                      navigate(`/chat/${idSelf}`);
-                      return;
+
+                      if (conversationId) {
+                        navigate(`/chat/${conversationId}`);
+                        return;
+                      }
+
+                      const fallbackId =
+                        (typeof j.id === "string" && j.id) ||
+                        (typeof j.order?.id === "string" && j.order.id);
+
+                      if (!fallbackId) {
+                        throw new Error("conversation_missing");
+                      }
+
+                      navigate(`/chat/${fallbackId}`);
+                    } catch (e) {
+                      alert("Unable to start chat");
                     }
-
-                    const r = await fetch(apiUrl("/api/orders"), {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        title: String(offer?.title || "Order"),
-                        makerAddress: maker,
-                        priceTON: Number(offer?.budgetTON || 0),
-                        offerId: String(offer?.id || id || ""),
-                        takerAddress: me,
-                        deadline: deadline
-                          ? new Date(deadline).toISOString()
-                          : undefined,
-                      }),
-                    });
-                    const j = await r.json();
-                    if (!r.ok) throw new Error(j?.error || "failed");
-
-                    const conversationId =
-                      (typeof j.conversationId === "string" &&
-                        j.conversationId) ||
-                      (typeof j.conversation?.id === "string" &&
-                        j.conversation.id) ||
-                      (typeof j.order?.conversationId === "string" &&
-                        j.order.conversationId) ||
-                      (typeof j.order?.conversation?.id === "string" &&
-                        j.order.conversation.id) ||
-                      null;
-
-                    if (conversationId) {
-                      navigate(`/chat/${conversationId}`);
-                      return;
-                    }
-
-                    const fallbackId =
-                      (typeof j.id === "string" && j.id) ||
-                      (typeof j.order?.id === "string" && j.order.id);
-
-                    if (!fallbackId) {
-                      throw new Error("conversation_missing");
-                    }
-
-                    navigate(`/chat/${fallbackId}`);
-                  } catch (e) {
-                    alert("Unable to start chat");
-                  }
-                }}
-              >
-                Message Maker
-              </Button>
+                  }}
+                >
+                  Message Maker
+                </Button>
+              </div>
             </div>
           </div>
         )}
