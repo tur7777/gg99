@@ -3,6 +3,7 @@ import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { apiUrl } from "@/lib/api";
 import { useWalletAddress } from "@/hooks/useTon";
+import { useToast } from "@/hooks/use-toast";
 
 export default function OfferPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,9 @@ export default function OfferPage() {
   const [loading, setLoading] = useState(!seed);
   const [error, setError] = useState<string | null>(null);
   const [deadline, setDeadline] = useState<string>("");
+  const [applying, setApplying] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (seed || !id) return;
@@ -44,14 +48,51 @@ export default function OfferPage() {
     };
   }, [id, seed]);
 
+  useEffect(() => {
+    if (!me || !id) return;
+    let mounted = true;
+    async function checkApplied() {
+      try {
+        const r = await fetch(
+          apiUrl(
+            `/api/applications/freelancer?freelancerAddress=${encodeURIComponent(me)}`,
+          ),
+        );
+        if (!mounted) return;
+        if (r.ok) {
+          const data = await r.json();
+          const applied = (data.applications || []).some(
+            (app: any) => app.offerId === id,
+          );
+          setHasApplied(applied);
+        }
+      } catch (e) {
+        console.error("Error checking if applied:", e);
+      }
+    }
+    checkApplied();
+    return () => {
+      mounted = false;
+    };
+  }, [me, id]);
+
   const minimal = offer
     ? {
         title: String(offer.title || "Offer"),
         budgetTON: Number(offer.budgetTON || 0),
         status: String(offer.status || "open"),
         createdAt: String(offer.createdAt || new Date().toISOString()),
+        deadlineISO: offer.deadlineISO ? String(offer.deadlineISO) : null,
       }
     : null;
+
+  useEffect(() => {
+    if (minimal?.deadlineISO) {
+      const d = new Date(minimal.deadlineISO);
+      const iso = d.toISOString().slice(0, 16);
+      setDeadline(iso);
+    }
+  }, [minimal?.deadlineISO]);
 
   return (
     <div className="min-h-[calc(100dvh-160px)] bg-[hsl(217,33%,9%)] text-white">
@@ -83,6 +124,11 @@ export default function OfferPage() {
             <div className="mt-1 text-xs text-white/60">
               Status: {minimal.status}
             </div>
+            {minimal.deadlineISO && (
+              <div className="mt-1 text-xs text-white/60">
+                Deadline: {new Date(minimal.deadlineISO).toLocaleString()}
+              </div>
+            )}
             {offer?.description && (
               <div className="mt-3 whitespace-pre-wrap text-sm text-white/80">
                 {String(offer.description)}
@@ -103,83 +149,145 @@ export default function OfferPage() {
                   До какой даты и времени нужно выполнить заказ.
                 </div>
               </div>
-              <Button
-                className="bg-primary text-primary-foreground"
-                onClick={async () => {
-                  try {
-                    const maker = String(offer?.makerAddress || "");
-                    if (!me) {
-                      alert("Connect wallet to message maker");
-                      return;
-                    }
-                    // If trying to message yourself -> open Favorites (self chat)
-                    if (maker && me === maker) {
-                      const rSelf = await fetch(apiUrl("/api/chat/self"), {
+              <div className="flex gap-2">
+                {me && me !== offer?.makerAddress && (
+                  <Button
+                    className="flex-1 bg-accent text-accent-foreground hover:bg-accent/80"
+                    disabled={applying || hasApplied}
+                    onClick={async () => {
+                      try {
+                        if (!me) {
+                          toast({
+                            title: "Error",
+                            description: "Connect wallet to apply",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+
+                        setApplying(true);
+                        const r = await fetch(apiUrl("/api/applications"), {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            offerId: String(id),
+                            freelancerAddress: me,
+                          }),
+                        });
+                        const j = await r.json();
+
+                        if (!r.ok) {
+                          if (j.error === "already_applied") {
+                            setHasApplied(true);
+                            toast({
+                              title: "Already applied",
+                              description:
+                                "You've already applied to this offer",
+                            });
+                            return;
+                          }
+                          throw new Error(j?.error || "failed");
+                        }
+
+                        setHasApplied(true);
+                        toast({
+                          title: "Success",
+                          description:
+                            "Application submitted! The client will review your profile.",
+                        });
+                      } catch (e) {
+                        toast({
+                          title: "Error",
+                          description: "Unable to submit application",
+                          variant: "destructive",
+                        });
+                      } finally {
+                        setApplying(false);
+                      }
+                    }}
+                  >
+                    {hasApplied ? "✓ Applied" : "I'm ready"}
+                  </Button>
+                )}
+                <Button
+                  className="flex-1 bg-primary text-primary-foreground"
+                  onClick={async () => {
+                    try {
+                      const maker = String(offer?.makerAddress || "");
+                      if (!me) {
+                        alert("Connect wallet to message maker");
+                        return;
+                      }
+                      // If trying to message yourself -> open Favorites (self chat)
+                      if (maker && me === maker) {
+                        const rSelf = await fetch(apiUrl("/api/chat/self"), {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ address: me }),
+                        });
+                        const jSelf = await rSelf.json();
+                        if (!rSelf.ok)
+                          throw new Error(jSelf?.error || "failed");
+                        const idSelfRaw =
+                          jSelf?.conversation?.id ??
+                          jSelf?.conversationId ??
+                          null;
+                        const idSelf = idSelfRaw ? String(idSelfRaw) : null;
+                        if (!idSelf) throw new Error("no_self_chat");
+                        navigate(`/chat/${idSelf}`);
+                        return;
+                      }
+
+                      const r = await fetch(apiUrl("/api/orders"), {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ address: me }),
+                        body: JSON.stringify({
+                          title: String(offer?.title || "Order"),
+                          makerAddress: maker,
+                          priceTON: Number(offer?.budgetTON || 0),
+                          offerId: String(offer?.id || id || ""),
+                          takerAddress: me,
+                          deadline: deadline
+                            ? new Date(deadline).toISOString()
+                            : undefined,
+                        }),
                       });
-                      const jSelf = await rSelf.json();
-                      if (!rSelf.ok) throw new Error(jSelf?.error || "failed");
-                      const idSelfRaw =
-                        jSelf?.conversation?.id ??
-                        jSelf?.conversationId ??
+                      const j = await r.json();
+                      if (!r.ok) throw new Error(j?.error || "failed");
+
+                      const conversationId =
+                        (typeof j.conversationId === "string" &&
+                          j.conversationId) ||
+                        (typeof j.conversation?.id === "string" &&
+                          j.conversation.id) ||
+                        (typeof j.order?.conversationId === "string" &&
+                          j.order.conversationId) ||
+                        (typeof j.order?.conversation?.id === "string" &&
+                          j.order.conversation.id) ||
                         null;
-                      const idSelf = idSelfRaw ? String(idSelfRaw) : null;
-                      if (!idSelf) throw new Error("no_self_chat");
-                      navigate(`/chat/${idSelf}`);
-                      return;
+
+                      if (conversationId) {
+                        navigate(`/chat/${conversationId}`);
+                        return;
+                      }
+
+                      const fallbackId =
+                        (typeof j.id === "string" && j.id) ||
+                        (typeof j.order?.id === "string" && j.order.id);
+
+                      if (!fallbackId) {
+                        throw new Error("conversation_missing");
+                      }
+
+                      navigate(`/chat/${fallbackId}`);
+                    } catch (e) {
+                      alert("Unable to start chat");
                     }
-
-                    const r = await fetch(apiUrl("/api/orders"), {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        title: String(offer?.title || "Order"),
-                        makerAddress: maker,
-                        priceTON: Number(offer?.budgetTON || 0),
-                        offerId: String(offer?.id || id || ""),
-                        takerAddress: me,
-                        deadline: deadline
-                          ? new Date(deadline).toISOString()
-                          : undefined,
-                      }),
-                    });
-                    const j = await r.json();
-                    if (!r.ok) throw new Error(j?.error || "failed");
-
-                    const conversationId =
-                      (typeof j.conversationId === "string" &&
-                        j.conversationId) ||
-                      (typeof j.conversation?.id === "string" &&
-                        j.conversation.id) ||
-                      (typeof j.order?.conversationId === "string" &&
-                        j.order.conversationId) ||
-                      (typeof j.order?.conversation?.id === "string" &&
-                        j.order.conversation.id) ||
-                      null;
-
-                    if (conversationId) {
-                      navigate(`/chat/${conversationId}`);
-                      return;
-                    }
-
-                    const fallbackId =
-                      (typeof j.id === "string" && j.id) ||
-                      (typeof j.order?.id === "string" && j.order.id);
-
-                    if (!fallbackId) {
-                      throw new Error("conversation_missing");
-                    }
-
-                    navigate(`/chat/${fallbackId}`);
-                  } catch (e) {
-                    alert("Unable to start chat");
-                  }
-                }}
-              >
-                Message Maker
-              </Button>
+                  }}
+                >
+                  Message Maker
+                </Button>
+              </div>
             </div>
           </div>
         )}

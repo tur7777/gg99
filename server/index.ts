@@ -15,6 +15,13 @@ import {
   getOrderById,
   updateOrder,
 } from "./routes/orders";
+import {
+  applyToOffer,
+  getApplicationsByOffer,
+  selectExecutor,
+  getApplicationsByFreelancer,
+  getApplicationsByCreator,
+} from "./routes/applications";
 import { listMessages, createMessage } from "./routes/messages";
 import { listInboxByThread, postInboxItem } from "./routes/inbox";
 import { getConversation, listConversations } from "./routes/conversations";
@@ -55,6 +62,13 @@ export function createServer() {
   app.get("/api/offers", listOffers);
   app.get("/api/offers/:id", getOfferById);
   app.post("/api/offers", createOffer);
+
+  // Applications API (specific routes before parameterized ones)
+  app.get("/api/applications/freelancer", getApplicationsByFreelancer);
+  app.get("/api/applications/creator", getApplicationsByCreator);
+  app.post("/api/applications/select", selectExecutor);
+  app.get("/api/applications/offer/:offerId", getApplicationsByOffer);
+  app.post("/api/applications", applyToOffer);
 
   // Orders API
   app.get("/api/orders", listOrders);

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useWalletAddress } from "@/hooks/useTon";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { apiUrl } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface Order {
   id: string;
@@ -24,11 +26,33 @@ interface ConversationSummary {
   unreadCount: number;
 }
 
+interface Application {
+  id: string;
+  offerId: string;
+  freelancerAddress: string;
+  status: string;
+  createdAt: string;
+  offer?: {
+    id: string;
+    title: string;
+    budgetTON: number;
+  };
+}
+
 export default function Chat() {
   const addr = useWalletAddress();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [receivedApplications, setReceivedApplications] = useState<
+    Application[]
+  >([]);
   const [loading, setLoading] = useState(false);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     if (!addr) return;
@@ -49,18 +73,34 @@ export default function Chat() {
         const urlConversations = apiUrl(
           `/api/conversations?address=${encodeURIComponent(addr)}`,
         );
+        const urlApplications = apiUrl(
+          `/api/applications/freelancer?freelancerAddress=${encodeURIComponent(addr)}`,
+        );
+        const urlReceivedApplications = apiUrl(
+          `/api/applications/creator?creatorAddress=${encodeURIComponent(addr)}`,
+        );
 
-        const [ordersRes, conversationsRes] = await Promise.all([
-          fetch(urlOrders),
-          fetch(urlConversations),
-        ]);
+        const [ordersRes, conversationsRes, applicationsRes, receivedRes] =
+          await Promise.all([
+            fetch(urlOrders),
+            fetch(urlConversations),
+            fetch(urlApplications),
+            fetch(urlReceivedApplications),
+          ]);
 
-        const [ordersJson, conversationsJson] = await Promise.all([
-          ordersRes.ok ? ordersRes.json() : Promise.resolve({ items: [] }),
-          conversationsRes.ok
-            ? conversationsRes.json()
-            : Promise.resolve({ conversations: [] }),
-        ]);
+        const [ordersJson, conversationsJson, applicationsJson, receivedJson] =
+          await Promise.all([
+            ordersRes.ok ? ordersRes.json() : Promise.resolve({ items: [] }),
+            conversationsRes.ok
+              ? conversationsRes.json()
+              : Promise.resolve({ conversations: [] }),
+            applicationsRes.ok
+              ? applicationsRes.json()
+              : Promise.resolve({ applications: [] }),
+            receivedRes.ok
+              ? receivedRes.json()
+              : Promise.resolve({ applications: [] }),
+          ]);
 
         if (cancelled) return;
 
@@ -100,8 +140,44 @@ export default function Chat() {
           nextConversations.unshift(it);
         }
 
+        const mappedApplications = (
+          (applicationsJson.applications ?? []) as any[]
+        ).map((a) => ({
+          id: String(a.id),
+          offerId: String(a.offerId),
+          freelancerAddress: String(a.freelancerAddress),
+          status: String(a.status),
+          createdAt: String(a.createdAt),
+          offer: a.offer
+            ? {
+                id: String(a.offer.id),
+                title: String(a.offer.title),
+                budgetTON: Number(a.offer.budgetTON),
+              }
+            : undefined,
+        }));
+
+        const mappedReceivedApplications = (
+          (receivedJson.applications ?? []) as any[]
+        ).map((a) => ({
+          id: String(a.id),
+          offerId: String(a.offerId),
+          freelancerAddress: String(a.freelancerAddress),
+          status: String(a.status),
+          createdAt: String(a.createdAt),
+          offer: a.offer
+            ? {
+                id: String(a.offer.id),
+                title: String(a.offer.title),
+                budgetTON: Number(a.offer.budgetTON),
+              }
+            : undefined,
+        }));
+
         setOrders(nextOrders);
         setConversations(nextConversations);
+        setApplications(mappedApplications);
+        setReceivedApplications(mappedReceivedApplications);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -247,6 +323,68 @@ export default function Chat() {
 
         {!loading && addr && (
           <>
+            {applications.filter((a) => a.status === "pending").length > 0 && (
+              <>
+                <h2 className="mt-6 text-sm font-semibold text-white/60">
+                  My Applications
+                </h2>
+                <div className="mt-2 space-y-2">
+                  {applications
+                    .filter((a) => a.status === "pending")
+                    .map((app) => (
+                      <div
+                        key={app.id}
+                        className="rounded-lg border border-white/10 bg-white/10 p-3"
+                      >
+                        <div className="font-medium text-primary">
+                          {app.offer?.title || "New application"}
+                        </div>
+                        <div className="text-xs text-white/60 mt-1">
+                          {app.offer?.budgetTON || 0} TON
+                        </div>
+                        <div className="text-xs text-white/50 mt-0.5">
+                          Applied •{" "}
+                          {new Date(app.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
+
+            {receivedApplications.filter((a) => a.status === "pending").length >
+              0 && (
+              <>
+                <h2 className="mt-6 text-sm font-semibold text-white/60">
+                  Freelton Notifications
+                </h2>
+                <div className="mt-2 space-y-2">
+                  {receivedApplications
+                    .filter((a) => a.status === "pending")
+                    .map((app) => (
+                      <div
+                        key={app.id}
+                        className="rounded-lg border border-white/10 bg-accent/20 p-3 hover:bg-accent/30 cursor-pointer"
+                      >
+                        <div className="font-medium text-accent-foreground">
+                          {app.offer?.title || "New application"}
+                        </div>
+                        <div className="text-xs text-white/60 mt-1">
+                          {app.offer?.budgetTON || 0} TON •{" "}
+                          <span className="text-accent">
+                            {app.freelancerAddress.substring(0, 6)}...
+                          </span>
+                        </div>
+                        <div className="text-xs text-white/50 mt-0.5">
+                          New candidate •{" "}
+                          {new Date(app.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
+
             <h2 className="mt-6 text-sm font-semibold text-white/60">Inbox</h2>
             <div className="mt-2 space-y-2">
               {favoritesConversation && (

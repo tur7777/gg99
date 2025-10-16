@@ -113,13 +113,30 @@ model Offer {
   description String?      @default("")
   budgetTON   Float
   status      OfferStatus  @default(open)
+  deadlineISO DateTime?
   createdAt   DateTime     @default(now())
   creatorId   String?
   creator     User?        @relation(fields: [creatorId], references: [id])
   reviews     Review[]     @relation("OfferReviews")
   orders      Order[]
+  applications Application[] @relation("OfferApplications")
 
   @@index([createdAt])
+}
+
+model Application {
+  id           String       @id @default(cuid())
+  offerId      String
+  offer        Offer?       @relation("OfferApplications", fields: [offerId], references: [id], onDelete: Cascade)
+  freelancerAddress String
+  status       String       @default("pending")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@unique([offerId, freelancerAddress])
+  @@index([offerId])
+  @@index([freelancerAddress])
+  @@index([status, createdAt])
 }
 
 model Job {

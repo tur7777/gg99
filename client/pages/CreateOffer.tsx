@@ -12,6 +12,7 @@ export default function CreateOffer() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [stack, setStack] = useState("");
+  const [deadline, setDeadline] = useState("");
   const navigate = useNavigate();
   const connected = useIsWalletConnected();
   const address = useWalletAddress();
@@ -33,16 +34,25 @@ export default function CreateOffer() {
     }
     setLoading(true);
     try {
+      const payload: any = {
+        title,
+        description,
+        budgetTON: Number(budget),
+        stack,
+        makerAddress: address,
+      };
+
+      if (deadline) {
+        const d = new Date(deadline);
+        if (!isNaN(d.getTime())) {
+          payload.deadline = d.toISOString();
+        }
+      }
+
       const r = await fetch(apiUrl("/api/offers"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description,
-          budgetTON: Number(budget),
-          stack,
-          makerAddress: address,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!r.ok) throw new Error("Failed to create offer");
       navigate("/take");
@@ -105,6 +115,20 @@ export default function CreateOffer() {
                 onChange={(e) => setBudget(e.target.value)}
                 className="bg-white/5 text-white border-white/10"
               />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm text-white/70">
+                Deadline (optional)
+              </label>
+              <Input
+                type="datetime-local"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                className="bg-white/5 text-white border-white/10"
+              />
+              <div className="mt-1 text-xs text-white/50">
+                When the work should be completed
+              </div>
             </div>
             <Button
               onClick={submit}

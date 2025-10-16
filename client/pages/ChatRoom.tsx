@@ -11,6 +11,7 @@ interface ConversationDetail {
   orderId?: string | null;
   title?: string | null;
   deadlineISO?: string | null;
+  orderTitle?: string | null;
 }
 
 interface Message {
@@ -63,12 +64,18 @@ export default function ChatRoom() {
         return;
       }
       const data = await res.json();
+      let orderTitle = null;
+      if (data.conversation?.order?.title) {
+        orderTitle = String(data.conversation.order.title);
+      }
+
       setConversation({
         id: String(data.conversation?.id ?? id),
         kind: String(data.conversation?.kind ?? "unknown"),
         orderId: data.conversation?.orderId ?? null,
         title: data.conversation?.metadata?.title ?? null,
         deadlineISO: data.conversation?.metadata?.deadlineISO ?? null,
+        orderTitle,
       });
       const mapped = (data.messages ?? []).map((m: any) => ({
         id: String(m.id),
@@ -228,8 +235,11 @@ export default function ChatRoom() {
     <div className="h-screen overflow-hidden bg-[hsl(217,33%,9%)] text-white flex flex-col">
       <div className="flex-1 min-h-0 w-full max-w-2xl mx-auto flex flex-col px-4 py-4 mb-[calc(160px+env(safe-area-inset-bottom))]">
         <div className="mb-1 text-lg font-semibold truncate flex-shrink-0">
-          {conversation?.title ||
-            (conversation?.kind === "favorites" ? "Favorites" : "Chat")}
+          {conversation?.kind === "favorites"
+            ? "Favorites"
+            : conversation?.orderTitle
+              ? `chat about ${conversation.orderTitle}`
+              : conversation?.title || "Chat"}
         </div>
         {conversation?.deadlineISO && (
           <div className="mb-2 text-xs text-white/60">
