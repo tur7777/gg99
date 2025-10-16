@@ -14,6 +14,7 @@ export const getOfferById: RequestHandler = async (req, res) => {
         description: true,
         budgetTON: true,
         status: true,
+        deadlineISO: true,
         createdAt: true,
 
         creator: { select: { address: true } },
@@ -28,6 +29,7 @@ export const getOfferById: RequestHandler = async (req, res) => {
       description: offerRaw.description,
       budgetTON: offerRaw.budgetTON,
       status: offerRaw.status,
+      deadlineISO: offerRaw.deadlineISO || null,
       createdAt: offerRaw.createdAt,
       makerAddress: offerRaw.creator?.address || "",
     };
