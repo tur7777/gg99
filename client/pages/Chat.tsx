@@ -291,6 +291,35 @@ export default function Chat() {
 
         {!loading && addr && (
           <>
+            {applications.filter((a) => a.status === "pending").length > 0 && (
+              <>
+                <h2 className="mt-6 text-sm font-semibold text-white/60">
+                  Freelton Notifications
+                </h2>
+                <div className="mt-2 space-y-2">
+                  {applications
+                    .filter((a) => a.status === "pending")
+                    .map((app) => (
+                      <div
+                        key={app.id}
+                        className="rounded-lg border border-white/10 bg-white/10 p-3"
+                      >
+                        <div className="font-medium text-primary">
+                          {app.offer?.title || "New application"}
+                        </div>
+                        <div className="text-xs text-white/60 mt-1">
+                          {app.offer?.budgetTON || 0} TON
+                        </div>
+                        <div className="text-xs text-white/50 mt-0.5">
+                          Application received •{" "}
+                          {new Date(app.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
+
             <h2 className="mt-6 text-sm font-semibold text-white/60">Inbox</h2>
             <div className="mt-2 space-y-2">
               {favoritesConversation && (
