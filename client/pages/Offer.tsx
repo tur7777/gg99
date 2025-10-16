@@ -122,6 +122,11 @@ export default function OfferPage() {
             <div className="mt-1 text-xs text-white/60">
               Status: {minimal.status}
             </div>
+            {minimal.deadlineISO && (
+              <div className="mt-1 text-xs text-white/60">
+                Deadline: {new Date(minimal.deadlineISO).toLocaleString()}
+              </div>
+            )}
             {offer?.description && (
               <div className="mt-3 whitespace-pre-wrap text-sm text-white/80">
                 {String(offer.description)}
