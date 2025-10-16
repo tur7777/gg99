@@ -20,6 +20,7 @@ import {
   getApplicationsByOffer,
   selectExecutor,
   getApplicationsByFreelancer,
+  getApplicationsByCreator,
 } from "./routes/applications";
 import { listMessages, createMessage } from "./routes/messages";
 import { listInboxByThread, postInboxItem } from "./routes/inbox";
