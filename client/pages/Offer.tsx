@@ -15,6 +15,9 @@ export default function OfferPage() {
   const [loading, setLoading] = useState(!seed);
   const [error, setError] = useState<string | null>(null);
   const [deadline, setDeadline] = useState<string>("");
+  const [applying, setApplying] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (seed || !id) return;
@@ -101,7 +104,7 @@ export default function OfferPage() {
                   className="h-10 w-full rounded-md bg-white/5 text-white border border-white/10 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                 />
                 <div className="mt-1 text-xs text-white/50">
-                  До какой даты и времени нужно выполнить з��каз.
+                  До какой даты и времени нужно выполнить заказ.
                 </div>
               </div>
               <Button
