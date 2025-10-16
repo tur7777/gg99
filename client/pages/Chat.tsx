@@ -153,9 +153,27 @@ export default function Chat() {
             : undefined,
         }));
 
+        const mappedReceivedApplications = (
+          (receivedJson.applications ?? []) as any[]
+        ).map((a) => ({
+          id: String(a.id),
+          offerId: String(a.offerId),
+          freelancerAddress: String(a.freelancerAddress),
+          status: String(a.status),
+          createdAt: String(a.createdAt),
+          offer: a.offer
+            ? {
+                id: String(a.offer.id),
+                title: String(a.offer.title),
+                budgetTON: Number(a.offer.budgetTON),
+              }
+            : undefined,
+        }));
+
         setOrders(nextOrders);
         setConversations(nextConversations);
         setApplications(mappedApplications);
+        setReceivedApplications(mappedReceivedApplications);
       } finally {
         if (!cancelled) setLoading(false);
       }
