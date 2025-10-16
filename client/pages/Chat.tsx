@@ -26,11 +26,28 @@ interface ConversationSummary {
   unreadCount: number;
 }
 
+interface Application {
+  id: string;
+  offerId: string;
+  freelancerAddress: string;
+  status: string;
+  createdAt: string;
+  offer?: {
+    id: string;
+    title: string;
+    budgetTON: number;
+  };
+}
+
 export default function Chat() {
   const addr = useWalletAddress();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!addr) return;
