@@ -107,6 +107,20 @@ export default function CreateOffer() {
                 className="bg-white/5 text-white border-white/10"
               />
             </div>
+            <div>
+              <label className="mb-2 block text-sm text-white/70">
+                Deadline (optional)
+              </label>
+              <Input
+                type="datetime-local"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                className="bg-white/5 text-white border-white/10"
+              />
+              <div className="mt-1 text-xs text-white/50">
+                When the work should be completed
+              </div>
+            </div>
             <Button
               onClick={submit}
               disabled={loading || !title}
