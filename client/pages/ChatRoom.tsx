@@ -64,12 +64,18 @@ export default function ChatRoom() {
         return;
       }
       const data = await res.json();
+      let orderTitle = null;
+      if (data.conversation?.order?.title) {
+        orderTitle = String(data.conversation.order.title);
+      }
+
       setConversation({
         id: String(data.conversation?.id ?? id),
         kind: String(data.conversation?.kind ?? "unknown"),
         orderId: data.conversation?.orderId ?? null,
         title: data.conversation?.metadata?.title ?? null,
         deadlineISO: data.conversation?.metadata?.deadlineISO ?? null,
+        orderTitle,
       });
       const mapped = (data.messages ?? []).map((m: any) => ({
         id: String(m.id),
