@@ -213,7 +213,7 @@ export default function Profile() {
                     className="rounded-lg border border-white/10 bg-white/5 p-4"
                   >
                     <Link
-                      to={`/chat/${order.id}`}
+                      to={`/offer/${order.offerId}`}
                       className="block hover:underline"
                     >
                       <div className="font-medium text-primary">
