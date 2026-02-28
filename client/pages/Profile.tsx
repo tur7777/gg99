@@ -5,6 +5,9 @@ import { apiUrl } from "@/lib/api";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { UserProfile } from "@/components/UserProfile";
+import { UserPortfolio } from "@/components/UserPortfolio";
+import { ReviewList } from "@/components/ReviewList";
 
 interface Order {
   id: string;
@@ -176,112 +179,83 @@ export default function Profile() {
             get paid.
           </p>
 
-          <div className="mt-6 space-y-4 rounded-xl border border-white/10 bg-white/5 p-4">
-            <div>
-              <div className="text-xs text-white/60">
-                Wallet Address (friendly)
-              </div>
-              <div className="font-mono break-all text-sm">
-                {address || "Not connected"}
-              </div>
-            </div>
+          {/* User Profile Card */}
+          {address && (
+            <UserProfile
+              address={address}
+              name="Freelancer"
+              bio="Skilled developer ready for your next project"
+              skills={["React", "TypeScript", "Node.js", "Web3", "Solidity"]}
+              className="mt-6"
+            />
+          )}
 
-            <div>
-              <div className="text-xs text-white/60">Nickname</div>
-              <div className="font-mono break-all text-sm">
-                {address || "Not connected"}
-              </div>
-            </div>
-          </div>
+          {/* Portfolio Section */}
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-4">Your Work</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* As Executor */}
+              <UserPortfolio
+                orders={ordersAsExecutor}
+                isLoading={loading}
+                title="Projects Completed"
+                emptyMessage="No completed projects yet"
+              />
 
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">Orders as Executor</h2>
-            {loading && <div className="text-white/70">Loading...</div>}
-            {!loading && ordersAsExecutor.length === 0 && (
-              <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-white/70">
-                No orders yet. Browse offers and click "I'm ready" to apply!
-              </div>
-            )}
-            {!loading && ordersAsExecutor.length > 0 && (
-              <div className="space-y-3">
-                {ordersAsExecutor.map((order) => (
-                  <div
-                    key={order.id}
-                    className="rounded-lg border border-white/10 bg-white/5 p-4"
-                  >
-                    <Link
-                      to={`/offer/${order.offerId}`}
-                      className="block hover:underline"
-                    >
-                      <div className="font-medium text-primary">
-                        {order.title}
-                      </div>
-                    </Link>
-                    <div className="mt-1 text-xs text-white/60">
-                      {order.priceTON} TON • {order.status}
-                    </div>
-                    <div className="mt-1 text-xs text-white/50">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </div>
+              {/* As Client */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-white">Hired Freelancers</h3>
+                {loading && <div className="text-white/70">Loading...</div>}
+                {!loading && ordersAsClient.length === 0 && (
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-white/70 text-center">
+                    No hires yet. Create an offer to start hiring!
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">Orders as Client</h2>
-            {loading && <div className="text-white/70">Loading...</div>}
-            {!loading && ordersAsClient.length === 0 && (
-              <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-white/70">
-                No orders yet. Create an offer to start hiring!
-              </div>
-            )}
-            {!loading && ordersAsClient.length > 0 && (
-              <div className="space-y-3">
-                {ordersAsClient.map((order) => (
-                  <div
-                    key={order.id}
-                    className="rounded-lg border border-white/10 bg-white/5 p-4"
-                  >
-                    <Link
-                      to={`/offer/${order.offerId}`}
-                      className="block hover:underline"
-                    >
-                      <div className="font-medium text-primary">
-                        {order.title}
-                      </div>
-                    </Link>
-                    <div className="mt-1 text-xs text-white/60">
-                      {order.priceTON} TON • {order.status}
-                    </div>
-                    <div className="mt-1 text-xs text-white/50">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </div>
-                    {order.offerId && order.status === "created" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="mt-3 text-xs"
-                        onClick={() => {
-                          const offer: Offer = {
-                            id: order.offerId!,
-                            title: order.title,
-                            budgetTON: order.priceTON || 0,
-                            status: "open",
-                            createdAt: order.createdAt,
-                          };
-                          handleShowCandidates(offer);
-                        }}
+                )}
+                {!loading && ordersAsClient.length > 0 && (
+                  <div className="space-y-3">
+                    {ordersAsClient.map((order) => (
+                      <div
+                        key={order.id}
+                        className="rounded-lg border border-white/10 bg-white/5 p-4"
                       >
-                        Show all candidates
-                      </Button>
-                    )}
+                        <div className="font-medium text-white">{order.title}</div>
+                        <div className="mt-1 text-xs text-white/60">
+                          {order.priceTON} TON • {order.status}
+                        </div>
+                        {order.offerId && order.status === "created" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="mt-3 text-xs"
+                            onClick={() => {
+                              const offer: Offer = {
+                                id: order.offerId!,
+                                title: order.title,
+                                budgetTON: order.priceTON || 0,
+                                status: "open",
+                                createdAt: order.createdAt,
+                              };
+                              handleShowCandidates(offer);
+                            }}
+                          >
+                            Show candidates
+                          </Button>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
-            )}
+            </div>
           </div>
+
+          {/* Reviews Section */}
+          {address && (
+            <div className="mt-12">
+              <h2 className="text-2xl font-bold mb-4">Reviews</h2>
+              <ReviewList address={address} />
+            </div>
+          )}
         </WalletGate>
       </div>
 
