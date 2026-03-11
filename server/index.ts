@@ -23,7 +23,12 @@ import {
   getApplicationsByCreator,
 } from "./routes/applications";
 import { listMessages, createMessage } from "./routes/messages";
-import { listInboxByThread, postInboxItem } from "./routes/inbox";
+import {
+  listInboxByThread,
+  postInboxItem,
+  updateInboxItem,
+  deleteInboxItem,
+} from "./routes/inbox";
 import { getConversation, listConversations } from "./routes/conversations";
 import { stream } from "./routes/stream";
 import { postTyping } from "./routes/chat-typing";
@@ -91,6 +96,8 @@ export function createServer() {
   // Inbox API
   app.get("/api/inbox", listInboxByThread);
   app.post("/api/inbox", postInboxItem);
+  app.put("/api/inbox/:id", updateInboxItem);
+  app.delete("/api/inbox/:id", deleteInboxItem);
   app.post("/api/inbox/read", postInboxRead);
 
   // Realtime stream (SSE)

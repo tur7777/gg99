@@ -78,10 +78,77 @@ export const listInboxByThread: RequestHandler = async (req, res) => {
     if (!threadId && !conversationId) {
       return res.status(400).json({ error: "thread_or_conversation_required" });
     }
-    const items = await listThreadItems({ threadId, conversationId, limit });
-    res.json({ items: items.map(mapItem) });
+    const result = await listThreadItems({ threadId, conversationId, limit });
+    res.json({ items: result.items.map(mapItem) });
   } catch (error) {
     captureError(error, { scope: "listInboxByThread" });
+    res.status(500).json({ error: "internal_error" });
+  }
+};
+
+export const updateInboxItem: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const address = String(req.body?.address || "");
+    const { content } = req.body;
+
+    if (!id || !address) {
+      return res.status(400).json({ error: "id_and_address_required" });
+    }
+
+    const { prisma } = await import("../lib/prisma");
+    const item = await prisma.inboxItem.findUnique({ where: { id } });
+
+    if (!item) {
+      return res.status(404).json({ error: "not_found" });
+    }
+
+    // Only the original sender can edit
+    if (item.address !== address) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+
+    const updated = await prisma.inboxItem.update({
+      where: { id },
+      data: {
+        content,
+        updatedAt: new Date(),
+      },
+    });
+
+    res.json({ item: mapItem(updated) });
+  } catch (error) {
+    captureError(error, { scope: "updateInboxItem" });
+    res.status(500).json({ error: "internal_error" });
+  }
+};
+
+export const deleteInboxItem: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const address = String(req.query?.address || "");
+
+    if (!id || !address) {
+      return res.status(400).json({ error: "id_and_address_required" });
+    }
+
+    const { prisma } = await import("../lib/prisma");
+    const item = await prisma.inboxItem.findUnique({ where: { id } });
+
+    if (!item) {
+      return res.status(404).json({ error: "not_found" });
+    }
+
+    // Only the original sender can delete
+    if (item.address !== address) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+
+    await prisma.inboxItem.delete({ where: { id } });
+
+    res.json({ ok: true });
+  } catch (error) {
+    captureError(error, { scope: "deleteInboxItem" });
     res.status(500).json({ error: "internal_error" });
   }
 };
