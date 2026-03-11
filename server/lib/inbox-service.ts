@@ -391,17 +391,53 @@ export async function listThreadItems(params: {
   threadId?: string;
   conversationId?: string;
   limit?: number;
+  beforeTimestamp?: Date;
 }) {
-  const { threadId, conversationId, limit = 100 } = params;
+  const { threadId, conversationId, limit = 50, beforeTimestamp } = params;
+
+  const where: any = {
+    threadId: threadId ?? undefined,
+    conversationId: conversationId ?? undefined,
+  };
+
+  // If beforeTimestamp is provided, fetch messages older than that timestamp
+  if (beforeTimestamp) {
+    where.createdAt = { lt: beforeTimestamp };
+  }
+
   const items = await prisma.inboxItem.findMany({
-    where: {
-      threadId: threadId ?? undefined,
-      conversationId: conversationId ?? undefined,
-    },
-    orderBy: { createdAt: "asc" },
+    where,
+    orderBy: { createdAt: "desc" },
     take: limit,
   });
-  return items;
+
+  // Reverse to maintain chronological order (oldest to newest)
+  items.reverse();
+
+  // Determine if there are older messages
+  let hasMore = false;
+  if (items.length > 0) {
+    const oldestTimestamp = items[0].createdAt;
+    const olderMessages = await prisma.inboxItem.count({
+      where: {
+        threadId: where.threadId ?? undefined,
+        conversationId: where.conversationId ?? undefined,
+        createdAt: { lt: oldestTimestamp },
+      },
+    });
+    hasMore = olderMessages > 0;
+  }
+
+  const oldestTimestamp = items.length > 0 ? items[0].createdAt : null;
+
+  return {
+    items,
+    hasMore,
+    pagination: {
+      oldestTimestamp,
+      count: items.length,
+    },
+  };
 }
 
 export async function markItemRead(itemId: string, address: string) {

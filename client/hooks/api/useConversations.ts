@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import {
   Conversation,
   ListConversationsResponse,
@@ -11,8 +11,10 @@ import { fetchApi } from "./fetch-client";
 export function useConversations() {
   return useQuery({
     queryKey: ["conversations"],
-    queryFn: () =>
-      fetchApi<ListConversationsResponse>("/api/conversations"),
+    queryFn: async () => {
+      const response = await fetchApi<ListConversationsResponse>("/api/conversations");
+      return response.conversations || response.items || [];
+    },
     staleTime: 10 * 1000,
   });
 }
@@ -20,8 +22,42 @@ export function useConversations() {
 export function useConversation(id: string) {
   return useQuery({
     queryKey: ["conversations", id],
-    queryFn: () => fetchApi<Conversation>(`/api/conversations/${id}`),
+    queryFn: async () => {
+      const response = await fetchApi<any>(`/api/conversations/${id}`);
+      return response.conversation || response;
+    },
     staleTime: 10 * 1000,
+  });
+}
+
+export function useConversationMessages(conversationId?: string, address?: string) {
+  return useInfiniteQuery({
+    queryKey: ["conversationMessages", conversationId],
+    queryFn: async ({ pageParam }: { pageParam?: string }) => {
+      const params = new URLSearchParams({
+        address: address || "",
+        limit: "50",
+      });
+      if (pageParam) {
+        params.append("before", pageParam);
+      }
+      const response = await fetchApi<any>(
+        `/api/conversations/${conversationId}?${params.toString()}`
+      );
+      return {
+        messages: response.messages || [],
+        pagination: response.pagination || { hasMore: false, oldestTimestamp: null },
+      };
+    },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.pagination?.hasMore && lastPage.pagination?.oldestTimestamp) {
+        return lastPage.pagination.oldestTimestamp;
+      }
+      return undefined;
+    },
+    enabled: !!conversationId && !!address,
+    staleTime: 5 * 1000,
+    initialPageParam: undefined,
   });
 }
 
@@ -35,7 +71,7 @@ export function useMessages(conversationId?: string) {
       const response = await fetchApi<ListMessagesResponse>(
         `/api/messages${queryStr}`
       );
-      return response.items || [];
+      return response.items || response.messages || [];
     },
     enabled: !!conversationId,
     staleTime: 5 * 1000,

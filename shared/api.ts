@@ -103,21 +103,34 @@ export interface Conversation {
 }
 
 export interface ListConversationsResponse {
-  items: Conversation[];
+  conversations?: Conversation[];
+  items?: Conversation[];
 }
 
 export interface Message {
   id: string;
-  conversationId: string;
-  senderAddress: string;
-  content?: string;
-  encryptedContent?: string;
-  signature?: string;
+  conversationId?: string;
   createdAt: string;
+  type: string;
+  importance: string;
+  channel: string;
+  text: string;
+  lang?: string;
+  address?: string;
+  meta?: Record<string, unknown>;
+  unread: boolean;
+}
+
+export interface PaginationMetadata {
+  hasMore: boolean;
+  oldestTimestamp: string | null;
+  count: number;
 }
 
 export interface ListMessagesResponse {
-  items: Message[];
+  items?: Message[];
+  messages?: Message[];
+  pagination?: PaginationMetadata;
 }
 
 export interface CreateMessageRequest {
