@@ -8,6 +8,7 @@ import {
 } from "../lib/conversation-service";
 import { unwrapContent } from "../lib/encryption";
 import { getMetricsSnapshot } from "../lib/observability";
+import { listThreadItems } from "../lib/inbox-service";
 
 function mapMessage(item: any, address: string) {
   const rawContent = item.encryptedContent ?? item.content ?? {};
@@ -112,6 +113,9 @@ export const getConversation: RequestHandler = async (req, res) => {
   try {
     const { id = "" } = req.params as any;
     const addressRaw = String(req.query.address || "");
+    const limitStr = String(req.query.limit || "50");
+    const beforeStr = req.query.before ? String(req.query.before) : undefined;
+
     const address = normalizeAddress(addressRaw);
     if (!address || !id) return res.status(400).json({ error: "bad_request" });
 
@@ -128,14 +132,23 @@ export const getConversation: RequestHandler = async (req, res) => {
       throw err;
     }
 
-    const items = await prisma.inboxItem.findMany({
-      where: { conversationId: conversation.id },
-      orderBy: { createdAt: "asc" },
+    const limit = Math.min(Math.max(parseInt(limitStr, 10) || 50, 1), 100);
+    const beforeTimestamp = beforeStr ? new Date(beforeStr) : undefined;
+
+    const { items, hasMore, pagination } = await listThreadItems({
+      conversationId: conversation.id,
+      limit,
+      beforeTimestamp,
     });
 
     return res.json({
       conversation,
       messages: items.map((item) => mapMessage(item, address)),
+      pagination: {
+        hasMore,
+        oldestTimestamp: pagination.oldestTimestamp,
+        count: pagination.count,
+      },
     });
   } catch (e) {
     console.error("getConversation error:", e);

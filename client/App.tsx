@@ -19,35 +19,38 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Chat from "./pages/Chat";
 import ChatRoom from "./pages/ChatRoom";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Analytics />
-        <Header>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/take" element={<Take />} />
-            <Route path="/learn" element={<Learn />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/offer/new" element={<CreateOffer />} />
-            <Route path="/offer/:id" element={<Offer />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/chat/:id" element={<ChatRoom />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Header>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Analytics />
+          <Header>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/take" element={<Take />} />
+              <Route path="/learn" element={<Learn />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/offer/new" element={<CreateOffer />} />
+              <Route path="/offer/:id" element={<Offer />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/chat/:id" element={<ChatRoom />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Header>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 createRoot(document.getElementById("root")!).render(<App />);
