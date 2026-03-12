@@ -1,16 +1,27 @@
-import { Address } from "@ton/core";
-
 /**
  * Converts a raw TON address to friendly Base64 format
- * @param address Raw address (e.g., "0:9546f1d1...") or friendly format
- * @returns Friendly format address (e.g., "UQ...") or original if parsing fails
+ * Handles addresses in format like "0:9546f1d1..." and converts to "UQ..." format
  */
 export function toFriendlyAddress(address: string): string {
+  if (!address) return "";
+
   try {
+    // If already in friendly format (starts with UQ, EQ, etc), return as-is
+    if (/^[A-Za-z0-9_-]{48}/.test(address)) {
+      return address;
+    }
+
+    // Import dynamically to avoid bundling issues
+    const { Address } = require("@ton/core");
     const parsed = Address.parse(address);
     return parsed.toString({ urlSafe: true, bounceable: true });
   } catch {
-    return address;
+    // If parsing fails, return first and last parts of original address
+    if (address.includes(":")) {
+      const parts = address.split(":");
+      return parts[0] + ":" + parts[1].slice(0, 6) + "..." + parts[1].slice(-6);
+    }
+    return address.slice(0, 10) + "..." + address.slice(-8);
   }
 }
 
