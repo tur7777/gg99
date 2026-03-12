@@ -1,15 +1,22 @@
 import { useUserStats } from "@/hooks/api";
 import { RatingStars } from "./RatingStars";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Briefcase, Award, MessageSquare } from "lucide-react";
+import { Briefcase, Award, MessageSquare, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatAddress } from "@/lib/tonAddress";
+import { EmojiAvatar } from "./EmojiAvatar";
+import { EmojiPicker } from "./EmojiPicker";
+import { useState } from "react";
 
 interface UserProfileProps {
   address: string;
   name?: string;
   bio?: string;
   skills?: string[];
+  emoji?: string;
+  onEmojiChange?: (emoji: string) => void;
   className?: string;
+  editable?: boolean;
 }
 
 export function UserProfile({
@@ -17,9 +24,14 @@ export function UserProfile({
   name,
   bio,
   skills,
+  emoji = "👤",
+  onEmojiChange,
   className,
+  editable = false,
 }: UserProfileProps) {
   const { data: stats, isLoading } = useUserStats(address);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [currentEmoji, setCurrentEmoji] = useState(emoji);
 
   if (isLoading) {
     return (
@@ -34,10 +46,16 @@ export function UserProfile({
     <div className={cn("rounded-lg border border-white/10 bg-white/5 p-6", className)}>
       {/* Header with avatar and basic info */}
       <div className="flex gap-4">
-        <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary to-primary/50 flex-shrink-0 flex items-center justify-center">
-          <span className="text-xl font-bold text-white">
-            {(name?.[0] || address[2])?.toUpperCase()}
-          </span>
+        <div className="relative">
+          <EmojiAvatar emoji={currentEmoji} size="md" />
+          {editable && (
+            <button
+              onClick={() => setShowEmojiPicker(true)}
+              className="absolute bottom-0 right-0 bg-primary/80 hover:bg-primary rounded-full p-2 transition-colors"
+            >
+              <Camera size={16} className="text-white" />
+            </button>
+          )}
         </div>
 
         <div className="flex-1">
@@ -45,7 +63,7 @@ export function UserProfile({
             {name || "Anonymous"}
           </h2>
           <div className="text-sm text-white/60 font-mono mt-1">
-            {address.slice(0, 10)}...{address.slice(-8)}
+            {formatAddress(address)}
           </div>
           {bio && <p className="text-sm text-white/80 mt-2">{bio}</p>}
         </div>
@@ -105,6 +123,20 @@ export function UserProfile({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Emoji Picker Modal */}
+      {showEmojiPicker && (
+        <EmojiPicker
+          currentEmoji={currentEmoji}
+          onEmojiSelect={(selectedEmoji) => {
+            setCurrentEmoji(selectedEmoji);
+            if (onEmojiChange) {
+              onEmojiChange(selectedEmoji);
+            }
+          }}
+          onClose={() => setShowEmojiPicker(false)}
+        />
       )}
     </div>
   );

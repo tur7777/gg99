@@ -16,7 +16,7 @@ export interface User {
   address: string;
   displayName?: string;
   bio?: string;
-  avatarUrl?: string;
+  avatarUrl?: string; // Can be emoji (e.g., "😀") or image URL
   createdAt: string;
   updatedAt: string;
 }

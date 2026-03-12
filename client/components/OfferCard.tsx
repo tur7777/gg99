@@ -2,11 +2,13 @@ import { Offer } from "@shared/api";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RatingStars } from "./RatingStars";
+import { EmojiAvatar } from "./EmojiAvatar";
 import { cn } from "@/lib/utils";
 
 interface OfferCardProps {
   offer: Offer;
   creatorName?: string;
+  creatorEmoji?: string;
   creatorRating?: number;
   creatorReviews?: number;
   onClick?: () => void;
@@ -36,6 +38,7 @@ function getStackColor(stack: string): string {
 export function OfferCard({
   offer,
   creatorName,
+  creatorEmoji = "👤",
   creatorRating = 0,
   creatorReviews = 0,
   onClick,
@@ -151,10 +154,13 @@ export function OfferCard({
         {/* Creator info */}
         {creatorName && (
           <div className="pt-3 border-t border-white/10 space-y-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-white/60">Posted by</p>
-                <p className="text-sm font-medium text-white">{creatorName}</p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1">
+                <EmojiAvatar emoji={creatorEmoji} size="sm" />
+                <div>
+                  <p className="text-xs text-white/60">Posted by</p>
+                  <p className="text-sm font-medium text-white">{creatorName}</p>
+                </div>
               </div>
               {creatorRating > 0 && (
                 <RatingStars
