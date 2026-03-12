@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { apiUrl } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { formatAddress } from "@/lib/tonAddress";
 
 interface Order {
   id: string;
@@ -372,7 +373,7 @@ export default function Chat() {
                         <div className="text-xs text-white/60 mt-1">
                           {app.offer?.budgetTON || 0} TON •{" "}
                           <span className="text-accent">
-                            {app.freelancerAddress.substring(0, 6)}...
+                            {formatAddress(app.freelancerAddress)}
                           </span>
                         </div>
                         <div className="text-xs text-white/50 mt-0.5">

@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UserProfile } from "@/components/UserProfile";
 import { UserPortfolio } from "@/components/UserPortfolio";
 import { ReviewList } from "@/components/ReviewList";
+import { formatAddress } from "@/lib/tonAddress";
 
 interface Order {
   id: string;
@@ -289,8 +290,8 @@ export default function Profile() {
                       className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-3"
                     >
                       <div className="flex-1">
-                        <div className="font-mono text-sm break-all">
-                          {candidate.freelancerAddress}
+                        <div className="font-mono text-sm">
+                          {formatAddress(candidate.freelancerAddress, false)}
                         </div>
                         <div className="mt-1 text-xs text-white/60">
                           Applied{" "}

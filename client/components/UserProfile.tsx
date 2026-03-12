@@ -3,6 +3,7 @@ import { RatingStars } from "./RatingStars";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Briefcase, Award, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatAddress } from "@/lib/tonAddress";
 
 interface UserProfileProps {
   address: string;
@@ -45,7 +46,7 @@ export function UserProfile({
             {name || "Anonymous"}
           </h2>
           <div className="text-sm text-white/60 font-mono mt-1">
-            {address.slice(0, 10)}...{address.slice(-8)}
+            {formatAddress(address)}
           </div>
           {bio && <p className="text-sm text-white/80 mt-2">{bio}</p>}
         </div>
